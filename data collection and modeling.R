@@ -4,10 +4,8 @@
 library(raster)
 library(rgdal)
 library(RStoolbox)
-library(lidR)
-library(dynatopmodel)
 library(dplyr)
-library(BalancedSampling)
+library(sp)
 
 rasterOptions(tmpdir="L:/DATA/temp_raster/")
 projRT90 <- "+init=epsg:3021 +towgs84=414.0978567149,41.3381489658,603.0627177516,-0.8550434314,2.1413465,-7.0227209516,0 +no_defs"
@@ -24,7 +22,7 @@ altitude<-raster("M:/THUF-Fjall/hojddata2.tif")
 
 library(googledrive)
 drive_find()    #choose "2"
-setwd("F:/Lovtrad_model/GEE")
+setwd("L:/Lovtrad_model/GEE")
 
 t1<-drive_find()
 files1<-grep(c("ndvi1"),t1$name,value=TRUE)
@@ -40,7 +38,7 @@ for (i in 1:length(files))
   drive_download(file=files[i],overwrite=TRUE)
 
 
-scene_list<-dir(path="F:/Lovtrad_model/GEE",pattern=".tif",full.names = TRUE)
+scene_list<-dir(path="L:/Lovtrad_model/GEE",pattern=".tif",full.names = TRUE)
 
 
 
@@ -52,7 +50,7 @@ parameter_list<-c(
  "tree_hight"
 )
 
-for (k in 12:length(parameter_list))
+for (k in 4:length(parameter_list))
 {                  
   
   parameter<-parameter_list[k]
@@ -81,9 +79,138 @@ for (k in 12:length(parameter_list))
   projection(mm)<-projSWEREF
   #mm_1<-crop(mm,extent(alp))
   #mm_1<-mask(mm_1,alp)
-  file_name<-paste("F:/Härjedalen/Geo-Data/",parameter,".tif", sep="")
+  file_name<-paste("L:/Lovtrad_model/Sentinel2",parameter,".tif", sep="")
   #file_name<-paste("F:/THUF/Fjäll-habitat-modell/Geo-data/",parameter,"_alp.tif", sep="")
   writeRaster(mm, filename=file_name, format="GTiff", overwrite=TRUE)
   file.remove(scene_list_red)
 }
+
+
+
+
+
+ndvi1.r<-raster("L:/Lovtrad_model/Sentinel2ndvi1.tif")
+ndvi2.r<-raster("L:/Lovtrad_model/Sentinel2ndvi2.tif")
+ndvi_diff.r<-raster("L:/Lovtrad_model/Sentinel2ndvi_diff.tif")
+trad_hight.r<-raster("L:/Lovtrad_model/Sentinel2tree_hight.tif")
+
+
+taxdata<-readRDS("F:/Lovtrad_model/trainings_data.rds")
+taxdata<-taxdata %>% filter(DelytaNr==0) %>% filter(Taxar>2013)
+
+taxdata.sp<-SpatialPointsDataFrame(coords=taxdata[,c("Ostkoordinat","Nordkoordinat")],data=taxdata,proj4string=CRS(projSWEREF))
+
+taxdata$ndvi1<-extract(ndvi1.r,taxdata.sp)
+taxdata$ndvi2<-extract(ndvi2.r,taxdata.sp)
+taxdata$ndvi_diff<-extract(ndvi_diff.r,taxdata.sp)
+taxdata$trad_hight<-extract(trad_hight.r,taxdata.sp)
+
+taxdata$ndvi1b<-extract(ndvi1.r,taxdata.sp,buffer=10,fun=mean)
+taxdata$ndvi2b<-extract(ndvi2.r,taxdata.sp,buffer=10,fun=mean)
+taxdata$ndvi_diffb<-extract(ndvi_diff.r,taxdata.sp,buffer=10,fun=mean)
+taxdata$trad_hightb<-extract(trad_hight.r,taxdata.sp,buffer=10,fun=mean)
+
+saveRDS(taxdata,file="F:/Lovtrad_model/model_data.rds")
+
+
+plot(taxdata$Ostkoordinat,taxdata$Nordkoordinat)
+
+taxdata.red<-taxdata %>% filter(!is.na(ndvi1)) %>% filter(DelytaNr==0) %>% filter(Nordkoordinat<6600000) %>% 
+  mutate(trad=Tallandel+Contortaandel+Granandel+Bjorkandel+Aspandel+Oadeltandel+Ekandel+Bokandel+Adelandel) %>% 
+  mutate(lovtrad=Bjorkandel+Aspandel+Oadeltandel+Ekandel+Bokandel+Adelandel) %>% 
+  mutate(lovandel=lovtrad/trad) %>% filter(trad>80) %>% filter(Taxar>2013) %>% 
+  filter(Krontackning>60) %>% 
+  mutate(lovskog=ifelse(lovandel>0.55,1,0)) %>% # %>% dplyr::select(lovandel,ndvi1,ndvi2,ndvi_diff,lovskog,trad_hight,IsPermanent)
+  filter(trad_hight>70)
+
+#plot(taxdata.red$Ostkoordinat,taxdata.red$Nordkoordinat)
+
+taxdata.red<-taxdata.red[,c(1:50,99:110)]
+taxdata.red<-na.omit(taxdata.red)
+
+taxtrain<-taxdata.red %>% filter(IsPermanent==1)
+taxtest<-taxdata.red %>%filter(IsPermanent==0)
+
+#plot(taxtrain$lovandel~taxtrain$ndvi_diff)
+
+library(mgcv)
+
+fit.gam<-gam(lovandel~s(ndvi1)
+             +s(ndvi2)
+             +s(ndvi_diff)
+             +s(trad_hight)
+             ,data=taxtrain,"quasibinomial")
+summary(fit.gam)
+gam.check(fit.gam)
+plot(fit.gam,pages=1,scale=F,shade=T)
+plot(taxtrain$lovskog,fitted(fit.gam))
+
+
+
+
+
+pred<-predict(fit.gam,taxtest,type="response")
+plot(taxtest$lovandel,pred)
+
+pred1<-ifelse(pred>0.55,1,0)
+round(prop.table(table(taxtest$lovskog-pred1)),3)
+
+taxtest<-as.data.frame(taxtest)
+taxtest$pred1<-unlist(pred1)
+taxtest<-taxtest %>% mutate(lovskog_p=unlist(pred1))
+
+taxtest$diff<-taxtest$lovskog-taxtest$pred1
+
+taxtest$pred<-round(pred,4)
+
+d1<-data.frame(taxtest$Ostkoordinat,taxtest$Nordkoordinat)#,taxtest$diff)
+
+taxtest.sp<-SpatialPointsDataFrame(coords=taxtest[,c("Ostkoordinat","Nordkoordinat")],data=taxtest,proj4string=CRS(projSWEREF))
+
+
+
+library(mapview)
+mapview(taxtest.sp,zcol="diff")
+
+taxtest %>% filter(Taxar==2018,TraktNr.x==4133,PalslagNr.x==408) %>% t()
+taxtest %>% filter(Taxar==2018,TraktNr.x==4133,PalslagNr.x==404) %>% t()
+taxtest %>% filter(Taxar==2016,TraktNr.x==4236,PalslagNr.x==204) %>% t()
+
+
+
+plot(taxtest$Ostkoordinat,taxtest$Nordkoordinat,col=taxtest$diff+1,pch=19)
+
+d1<-as.data.frame(taxtest[taxtest$diff==1,])
+
+
+
+
+
+
+
+hist(taxtest$mod.error)
+
+plot(taxtest$mod.error~taxtest$VolymAlla)
+
+
+
+
+
+fit2.gam<-gam(lovskog~s(ndvi1)
+             +s(ndvi2)
+             +s(ndvi_diff)
+             ,data=subset(taxtrain) ,"binomial")
+summary(fit2.gam)
+gam.check(fit2.gam)
+
+
+plot(taxtrain$lovskog,fitted(fit.gam))
+
+
+
+
+
+
+
+
 
