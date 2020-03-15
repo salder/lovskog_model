@@ -283,15 +283,18 @@ for (i in 1:length(files))
   drive_download(file=files[i],overwrite=TRUE)
 
 
-scene_list<-dir(path="L:/Lovtrad_model/GEE",pattern=".tif",full.names = TRUE)
 
 
 
+
+
+#merging/extracting with tax data
 #number of files might be different (e.g. for tree_hight) -> four different loops (not nessesarely if all the same!)
-files1<-grep(c("ndvi1"),scene_list,value=TRUE)
-files2<-grep(c("ndvi2"),scene_list,value=TRUE)
-files3<-grep(c("ndvi_diff"),scene_list,value=TRUE)
-files4<-grep(c("tree_hight"),scene_list,value=TRUE)
+scene_list<-dir(path="L:/Lovtrad_model/GEE",pattern=".tif",full.names = TRUE)
+files1<-grep(c("ndvi_swe2"),scene_list,value=TRUE)
+files2<-grep(c("ndvi2_swe2"),scene_list,value=TRUE)
+files3<-grep(c("ndvi_diff_swe2"),scene_list,value=TRUE)
+files4<-grep(c("tree_hight_swe2"),scene_list,value=TRUE)
 
 
 
@@ -331,3 +334,50 @@ dat.ndvi1_swe<-tile.extract(file_list=files1,data=taxdata.sp,var.name="ndvi1_swe
 dat.ndvi2_swe<-tile.extract(file_list=files2,data=taxdata.sp,var.name="ndvi2_swe")
 dat.ndvi_diff_swe<-tile.extract(file_list=files3,data=taxdata.sp,var.name="ndvi_diff_swe")
 dat.tree_high_swe<-tile.extract(file_list=files4,data=taxdata.sp,var.name="tree_hight_swe")
+#join with tax data using the coordinates!
+taxdata.m<-taxdata %>% left_join(.,dat.ndvi1_swe,by=c("Ostkoordinat","Nordkoordinat")) %>% 
+                       left_join(.,dat.ndvi2_swe,by=c("Ostkoordinat","Nordkoordinat"))%>% 
+                       left_join(.,dat.ndvi_diff_swe,by=c("Ostkoordinat","Nordkoordinat")) %>% 
+                       left_join(.,dat.tree_high_swe,by=c("Ostkoordinat","Nordkoordinat")) 
+
+saveRDS(taxdata.m,file="F:/Lovtrad_model/model_data_lov_sweden.rds")
+
+###################################################################################################################
+#modelbuilding
+#the same as above but with a model south and a model north
+#
+
+#data selection before modelling
+taxdata.m<-readRDS("F:/Lovtrad_model/model_data_lov_sweden.rds")
+
+taxdata.red<-taxdata.m %>% 
+  filter(!is.na(ndvi1)) %>%     # only plots that are "forest" (pixels with tree(laser) > 5 meter)
+  filter(DelytaNr==0) %>%       # only undevided plots
+  mutate(data.set=ifelse(Nordkoordinat<6600000,"S","N")) %>%  #south Sweden
+  mutate(trad=Tallandel+Contortaandel+Granandel+Bjorkandel+Aspandel+Oadeltandel+Ekandel+Bokandel+Adelandel) %>% 
+  mutate(lovtrad=Bjorkandel+Aspandel+Oadeltandel+Ekandel+Bokandel+Adelandel) %>% 
+  mutate(lovandel=lovtrad/trad) %>% 
+  filter(trad>80) %>%  #should be always 100 but it seems to be errors in the data
+  filter(Taxar>2013) %>%  #time period 2014-2019
+  #filter(Krontackning>60) %>% #(test the effect!)
+  mutate(lovskog=ifelse(lovandel>0.55,1,0)) %>% # %>% dplyr::select(lovandel,ndvi1,ndvi2,ndvi_diff,lovskog,trad_hight,IsPermanent)
+  mutate(lovandel_k=Krontackning*lovandel/100) %>% 
+  mutate(lovskog_k=ifelse(lovandel_k>0.55,1,0)) %>%  
+  filter(trad_hight>50) #tree larger than 7 m (test the effect!)
+
+#plot(taxdata.red$Ostkoordinat,taxdata.red$Nordkoordinat)
+
+taxdata.red<-taxdata.red[,c(1:50,99:112)]  #excluding no needet columns
+taxdata.red<-na.omit(taxdata.red)          #remove all rows with NA values   
+
+
+
+
+
+
+fit.south
+
+fit.north
+
+
+
