@@ -351,7 +351,7 @@ saveRDS(taxdata.m,file="F:/Lovtrad_model/model_data_lov_sweden.rds")
 taxdata.m<-readRDS("F:/Lovtrad_model/model_data_lov_sweden.rds")
 
 taxdata.red<-taxdata.m %>% 
-  filter(!is.na(ndvi1)) %>%     # only plots that are "forest" (pixels with tree(laser) > 5 meter)
+  filter(!is.na(ndvi1_swe)) %>%     # only plots that are "forest" (pixels with tree(laser) > 5 meter)
   filter(DelytaNr==0) %>%       # only undevided plots
   mutate(data.set=ifelse(Nordkoordinat<6600000,"S","N")) %>%  #south Sweden
   mutate(trad=Tallandel+Contortaandel+Granandel+Bjorkandel+Aspandel+Oadeltandel+Ekandel+Bokandel+Adelandel) %>% 
@@ -362,12 +362,13 @@ taxdata.red<-taxdata.m %>%
   #filter(Krontackning>60) %>% #(test the effect!)
   mutate(lovskog=ifelse(lovandel>0.55,1,0)) %>% # %>% dplyr::select(lovandel,ndvi1,ndvi2,ndvi_diff,lovskog,trad_hight,IsPermanent)
   mutate(lovandel_k=Krontackning*lovandel/100) %>% 
-  mutate(lovskog_k=ifelse(lovandel_k>0.55,1,0)) %>%  
-  filter(trad_hight>50) #tree larger than 7 m (test the effect!)
+  mutate(lovskog_k=ifelse(lovandel_k>0.55,1,0)) %>% 
+  dplyr::select(-Tackningsarea1) %>% 
+  filter(tree_hight_swe>50) %>% data.frame() #tree larger than 7 m (test the effect!)
 
 #plot(taxdata.red$Ostkoordinat,taxdata.red$Nordkoordinat)
 
-taxdata.red<-taxdata.red[,c(1:50,99:112)]  #excluding no needet columns
+taxdata.red<-taxdata.red[,c(1:50,96:108)]  #excluding no needet columns
 taxdata.red<-na.omit(taxdata.red)          #remove all rows with NA values   
 
 
@@ -375,9 +376,92 @@ taxdata.red<-na.omit(taxdata.red)          #remove all rows with NA values
 
 
 
-fit.south
+#fit.south
 
-fit.north
+
+taxtrain<-taxdata.red %>% filter(IsPermanent==1,data.set=="S") 
+taxtest<-taxdata.red %>%filter(IsPermanent==0,data.set=="S")
+
+#plot(taxtrain$lovandel~taxtrain$ndvi_diff)
+
+library(mgcv)
+
+# fit.gam<-gam(lovandel~s(ndvi1_swe)
+#              +s(ndvi2_swe)
+#              +s(ndvi_diff_swe)
+#              +s(tree_hight_swe)
+#              ,data=subset(taxtrain),"quasibinomial")
+# summary(fit.gam)
+# gam.check(fit.gam)
+# plot(fit.gam,pages=1,scale=F,shade=T)
+# plot(taxtrain$lovskog,fitted(fit.gam))
+
+
+fit_south.gam<-gam(lovandel_k~s(ndvi1_swe)                
+              +s(ndvi2_swe)
+              +s(ndvi_diff_swe)
+              +s(tree_hight_swe)
+              ,data=taxtrain,"quasibinomial")
+summary(fit_south.gam)
+gam.check(fit_south.gam)
+plot(fit_south.gam,pages=1,scale=F,shade=T)
+plot(taxtrain$lovskog,fitted(fit_south.gam))
+
+
+# pred<-predict(fit.gam,taxtest,type="response")
+# taxtest$pred<-ifelse(pred>0.55,1,0)
+# taxtest$diff=taxtest$lovskog-taxtest$pred
+# round(prop.table(table(taxtest$lovskog-taxtest$pred)),3)
+
+#more right model!
+pred<-predict(fit_south.gam,taxtest,type="response")
+taxtest$pred_k<-ifelse(pred>0.55,1,0)
+taxtest$diff_k=taxtest$lovskog_k-taxtest$pred_k
+round(prop.table(table(taxtest$lovskog_k-taxtest$pred_k)),3)
+
+
+
+
+#fit.north
+
+
+taxtrain<-taxdata.red %>% filter(IsPermanent==1,data.set=="N") 
+taxtest<-taxdata.red %>%filter(IsPermanent==0,data.set=="N")
+
+
+fit_north.gam<-gam(lovandel_k~s(ndvi1_swe)                
+                   +s(ndvi2_swe)
+                   +s(ndvi_diff_swe)
+                   +s(tree_hight_swe)
+                   ,data=taxtrain,"quasibinomial")
+summary(fit_north.gam)
+gam.check(fit_north.gam)
+plot(fit_north.gam,pages=1,scale=F,shade=T)
+plot(taxtrain$lovskog,fitted(fit_south.gam))
+
+
+# pred<-predict(fit.gam,taxtest,type="response")
+# taxtest$pred<-ifelse(pred>0.55,1,0)
+# taxtest$diff=taxtest$lovskog-taxtest$pred
+# round(prop.table(table(taxtest$lovskog-taxtest$pred)),3)
+
+#more right model!
+pred<-predict(fit_north.gam,taxtest,type="response")
+taxtest$pred_k<-ifelse(pred>0.55,1,0)
+taxtest$diff_k=taxtest$lovskog_k-taxtest$pred_k
+round(prop.table(table(taxtest$lovskog_k-taxtest$pred_k)),3)
+
+
+
+
+
+#################################################################################################################
+#################################################################################################################
+
+#prediction to the raster tiles
+
+
+
 
 
 
