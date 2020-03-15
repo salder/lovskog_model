@@ -270,10 +270,10 @@ drive_find()    #choose "2"
 setwd("L:/Lovtrad_model/GEE")
 
 t1<-drive_find()
-files1<-grep(c("ndvi1"),t1$name,value=TRUE)
-files2<-grep(c("ndvi2"),t1$name,value=TRUE)
-files3<-grep(c("ndvi_diff"),t1$name,value=TRUE)
-files4<-grep(c("tree_hight"),t1$name,value=TRUE)
+files1<-grep(c("ndvi_swe2"),t1$name,value=TRUE)
+files2<-grep(c("ndvi2_swe2"),t1$name,value=TRUE)
+files3<-grep(c("ndvi_diff_swe2"),t1$name,value=TRUE)
+files4<-grep(c("tree_hight_swe2"),t1$name,value=TRUE)
 files<-c(files1,files2,files3,files4)
 
 
@@ -303,22 +303,26 @@ taxdata.sp<-SpatialPointsDataFrame(coords=taxdata[,c("Ostkoordinat","Nordkoordin
 
 
 
-tile.extract<-function(file_list=files1,data=taxdata.sp,var.name="ndvi1_swe")
+tile.extract<-function(file_list=files1,data.sp=taxdata.sp,var.name="ndvi1_swe")
     {
           train_m<-NA
           #ndvi1
-          for (i in 1:length(files1))
+          for (i in 1:length(file_list))
           {
            #i=1
-            ras.t<-raster(files1[i])                   #.t for "tiles"
+            ras.t<-raster(file_list[i])                   #.t for "tiles"
             e.t<-extent(ras.t)
-            train.sp<-crop(taxdata.sp,e.t)
-            train<-train.sp@data
-            train$extract<-extract(ras.t,train.sp)
-            train_m<-rbind(train_m,train)
+            train.sp<-crop(data.sp,e.t)
+            if(is.null(train.sp)==FALSE)
+                {
+                train<-train.sp@data
+                train$extract<-extract(ras.t,train.sp)
+                train_m<-rbind(train_m,train)
+                }
           }
           train.res<-train_m %>% dplyr::select(Ostkoordinat,Nordkoordinat,extract)
           names(train.res)[[3]]<-var.name
+          print(train.res)
 }
 
 
