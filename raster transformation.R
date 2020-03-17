@@ -26,7 +26,7 @@ raster_to_01<-function(filename="tree_prediction_2_tile.tif",
         out <- writeValues(out, pred, bs$row[i])
       }
       out <- writeStop(out)
-      file.nam<-paste("L:/Lovtrad_model/tree_prediction_",j,"_tile.tif",sep="")
-      writeRaster(out, filename=file.nam, format="GTiff", overwrite=TRUE)
+      nam<-paste("pa_",filename,sep="")
+      writeRaster(out, filename=nam, format="GTiff", overwrite=TRUE)
 
 }

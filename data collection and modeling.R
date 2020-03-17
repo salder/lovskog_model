@@ -400,7 +400,7 @@ library(mgcv)
 fit_south.gam<-gam(lovandel_k~s(ndvi1_swe)                
               +s(ndvi2_swe)
               +s(ndvi_diff_swe)
-              +s(tree_hight_swe)
+             # +s(tree_hight_swe)
               ,data=taxtrain,"quasibinomial")
 summary(fit_south.gam)
 gam.check(fit_south.gam)
@@ -432,7 +432,7 @@ taxtest<-taxdata.red %>%filter(IsPermanent==0,data.set=="N")
 fit_north.gam<-gam(lovandel_k~s(ndvi1_swe)                
                    +s(ndvi2_swe)
                    +s(ndvi_diff_swe)
-                   +s(tree_hight_swe)
+                  # +s(tree_hight_swe)
                    ,data=taxtrain,"quasibinomial")
 summary(fit_north.gam)
 gam.check(fit_north.gam)
@@ -459,9 +459,49 @@ round(prop.table(table(taxtest$lovskog_k-taxtest$pred_k)),3)
 #################################################################################################################
 
 #prediction to the raster tiles
+#two possibilities, parallel processing (snow+raster as i the MAS project) or prediction as function looping over the raster
+# ->problem with missing laser data in the mountain area
+# ->idea: using nmd. If nmd indicates forest where laser data are missing -> set tree hight to 6 meter (mostly mountain birtch forest)
+# ->easier within a loop than in parallel processing
+
+rasterOptions(tmpdir="L:/DATA/temp_raster/")
+projRT90 <- "+init=epsg:3021 +towgs84=414.0978567149,41.3381489658,603.0627177516,-0.8550434314,2.1413465,-7.0227209516,0 +no_defs"
+projSWEREF <- "+init=epsg:3006"
 
 
+tree_hight<-raster("L:/Lovtrad_model/p95.tif")
+
+scene_list<-dir(path="L:/Lovtrad_model/GEE",pattern=".tif",full.names = TRUE)
+files1<-grep(c("ndvi_swe2"),scene_list,value=TRUE)
+files2<-grep(c("ndvi2_swe2"),scene_list,value=TRUE)
+files3<-grep(c("ndvi_diff_swe2"),scene_list,value=TRUE)
 
 
+for( j in 1:length(files1))
+{
 
+ndvi1_swe.t<-raster(files1[j])
+ndvi2_swe.t<-raster(files2[j])
+ndvi_diff_swe.t<-raster(files3[j])
+
+
+if (ndvi1_swe.t@extent[1]>6600000) fit.gam<-fit_north.gam else fit.gam<-fit_south.gam
+
+    out <- raster(ndvi1_swe.t)
+    bs <- blockSize(out)
+    filename="L:/DATA/temp_raster/temp.tif"
+    out <- writeStart(out, filename, overwrite=TRUE)
+    for (i in 1:bs$n)
+            {
+            ndvi1_swe <- getValues(ndvi1_swe.t, row=bs$row[i], nrows=bs$nrows[i] )
+            ndvi2_swe <- getValues(ndvi2_swe.t, row=bs$row[i], nrows=bs$nrows[i] )
+            ndvi_diff_swe <- getValues(ndvi_diff_swe.t, row=bs$row[i], nrows=bs$nrows[i] )
+            data.pred<-data.frame(ndvi1_swe,ndvi2_swe,ndvi_diff_swe)
+            pred<-round(predict(fit.gam,newdata=data.pred,type="response"),3)
+            out <- writeValues(out, pred, bs$row[i])
+            }
+    out <- writeStop(out)
+file.nam<-paste("L:/Lovtrad_model/tree_prediction_",j,"_tile.tif",sep="")
+writeRaster(out, filename=file.nam, format="GTiff", overwrite=TRUE)
+}
 
