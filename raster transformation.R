@@ -10,23 +10,24 @@ raster_to_01<-function(filename="tree_prediction_2_tile.tif",
                        sourcelocation="L:/Lovtrad_model",
                        targetlocation="L:/Lovtrad_model",
                        tempfile="L:/DATA/temp_raster/temp.tif",
-                       border=0.51
+                       border=0.51 #larger than this value
                        )
 
 {
-      x <- raster(filename)
+      filename.c<-paste(sourcelocation,"/",filename,sep="")
+      x <- raster(filename.c)
       out<-x
       bs <- blockSize(out)
-      filename=tempfile
-      out <- writeStart(out, filename, overwrite=TRUE)
+      file.temp=tempfile
+      out <- writeStart(out, file.temp, overwrite=TRUE)
       for (i in 1:bs$n)
       {
         val <- getValues(x, row=bs$row[i], nrows=bs$nrows[i] )
         val.t<-ifelse(val>border,1,0)
-        out <- writeValues(out, pred, bs$row[i])
+        out <- writeValues(out, val.t, bs$row[i])
       }
       out <- writeStop(out)
-      nam<-paste("pa_",filename,sep="")
-      writeRaster(out, filename=nam, format="GTiff", overwrite=TRUE)
+      nam<-paste(targetlocation,"/pa_",filename,sep="")
+      writeRaster(out, filename=nam, format="GTiff", overwrite=TRUE,datatype='INT1U')
 
 }

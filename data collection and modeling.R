@@ -516,12 +516,13 @@ writeRaster(out, filename=file.nam, format="GTiff", overwrite=TRUE)
 scene_list<-dir(path="L:/Lovtrad_model",pattern="tree_prediction")
 
 source("F:/Lovtrad_model/raster transformation.R")
-  
-raster_to_01(filename=scene_list[j],
-            sourcelocation="L:/Lovtrad_model",
-            targetlocation="L:/Lovtrad_model/pa_lovtrad",
-            tempfile="L:/DATA/temp_raster/temp.tif",
-            border=0.51 #larger than this value
-            )
+
+for (j in 1:length(scene_list))
+        raster_to_01(filename=scene_list[j],
+                    sourcelocation="L:/Lovtrad_model",
+                    targetlocation="L:/Lovtrad_model/pa_lovtrad",
+                    tempfile="L:/DATA/temp_raster/temp.tif",
+                    border=0.51 #larger than this value
+                    )
 
 
