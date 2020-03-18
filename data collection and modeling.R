@@ -505,3 +505,23 @@ file.nam<-paste("L:/Lovtrad_model/tree_prediction_",j,"_tile.tif",sep="")
 writeRaster(out, filename=file.nam, format="GTiff", overwrite=TRUE)
 }
 
+
+
+
+
+##########################################################
+#transfomartion to 0 (non deciduous tree) and 1 (> more than 50% deciduous tree
+
+
+scene_list<-dir(path="L:/Lovtrad_model",pattern="tree_prediction")
+
+source("F:/Lovtrad_model/raster transformation.R")
+  
+raster_to_01(filename=scene_list[j],
+            sourcelocation="L:/Lovtrad_model",
+            targetlocation="L:/Lovtrad_model/pa_lovtrad",
+            tempfile="L:/DATA/temp_raster/temp.tif",
+            border=0.51 #larger than this value
+            )
+
+
