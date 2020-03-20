@@ -4,7 +4,7 @@ rasterOptions(tmpdir="L:/DATA/temp_raster/")
 
 
 
-merge.raster<-function(filesource="L:/Lovtrad_model"
+merge.raster<-function(filesource="L:/Lovtrad_model/pa_lovtrad/"
                        ,file_collection="pa_"
                        ,temp_file="L:/DATA/temp_raster/temp.tif"
                        ,target_file="L:/Lovtrad_model/lovtrad_sverige.tif",

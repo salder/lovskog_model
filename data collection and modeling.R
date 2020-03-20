@@ -1,4 +1,4 @@
-# modelling decidious tree in south Sweden
+# modelling deciduous tree in south Sweden
 
 
 library(raster)
@@ -524,5 +524,29 @@ for (j in 1:length(scene_list))
                     tempfile="L:/DATA/temp_raster/temp.tif",
                     border=0.51 #larger than this value
                     )
+
+
+
+
+
+
+
+##########################################################
+#merge the sinlge tiles
+
+source("F:/Lovtrad_model/merge_raster_tiles.R")
+merge.raster(filesource="L:/Lovtrad_model/pa_lovtrad/"
+                                     ,file_collection="pa_"
+                                     ,temp_file="L:/DATA/temp_raster/temp.tif"
+                                     ,target_file="L:/Lovtrad_model/lovtrad_sverige.tif",
+                                     proj="+init=epsg:3006")
+
+merge.raster(filesource="L:/Lovtrad_model"
+             ,file_collection="tree_pred"
+             ,temp_file="L:/DATA/temp_raster/temp.tif"
+             ,target_file="L:/Lovtrad_model/lovtrad_sverige_sanolikhet_0_1.tif",
+             proj="+init=epsg:3006")
+
+
 
 
