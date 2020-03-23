@@ -549,4 +549,51 @@ merge.raster(filesource="L:/Lovtrad_model"
 
 
 
+#########################################################
+#Gotland (Anton + Sören Wulff)
+
+library(raster)
+lovtrad<-raster("L:/Lovtrad_model/lovtrad_sverige_sanolikhet_0_1.tif")
+#clip Gotland
+e.g<-extent(c(638126.4,778304,6263141,6467036 ))
+lovtrad.got<-crop(lovtrad,e.g)  
+writeRaster(lovtrad.got, filename="L:/Lovtrad_model/lovtrad_gotland.tif", format="GTiff", overwrite=TRUE) 
+  
+  
+
+raster_to_01(filename="lovtrad_gotland.tif",
+             sourcelocation="L:/Lovtrad_model",
+             targetlocation="L:/Lovtrad_model",
+             tempfile="L:/DATA/temp_raster/temp.tif",
+             border=10 #larger than this value /100
+)
+
+
+
+
+
+raster_to_01(filename="lovtrad_gotland.tif",
+             sourcelocation="L:/Lovtrad_model",
+             targetlocation="L:/Lovtrad_model",
+             tempfile="L:/DATA/temp_raster/temp.tif",
+             border=20 #larger than this value /100
+)
+
+
+raster_to_01(filename="lovtrad_gotland.tif",
+             sourcelocation="L:/Lovtrad_model",
+             targetlocation="L:/Lovtrad_model",
+             tempfile="L:/DATA/temp_raster/temp.tif",
+             border=30 #larger than this value /100
+)
+
+raster_to_01(filename="lovtrad_gotland.tif",
+             sourcelocation="L:/Lovtrad_model",
+             targetlocation="L:/Lovtrad_model",
+             tempfile="L:/DATA/temp_raster/temp.tif",
+             border=50 #larger than this value /100
+)
+
+
+
 

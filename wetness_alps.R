@@ -8,6 +8,7 @@
 
 
 
+
 #requirements 
 # SAGA must be insatlled 
 # (alternatively can RQGIS be used, we have to try out that!!)
@@ -44,12 +45,14 @@ dem10.f<-crop(dem10,e.buff)
 e.dem10.f<-extent(dem10.f)
 
 diff<-e.dem10.f[4]-e.dem10.f[3]
-diff1<-diff/20
+diff1<-diff/120
 
 
-j=1
 
-e.smal<-extent(e.dem10.f[1],e.dem10.f[2],e.dem10.f[3]+(j-1)*diff1,e.dem10.f[3]+(j)*diff1)
+
+for (j in 1:120)
+{
+e.smal<-extent(e.dem10.f[1],e.dem10.f[2],(e.dem10.f[3]+(j-1)*diff1)-3000,(e.dem10.f[3]+(j)*diff1)+3000)
 
 fjall_buffer.s<-crop(fjall_buffer,e.smal)
 e.buff.s<-extent(fjall_buffer.s)
@@ -60,8 +63,40 @@ writeRaster(dem.s, filename="M:/Geo-Data/dem_alp_for_wetness.tif", format="GTiff
 rsaga.import.gdal(in.grid="M:/Geo-Data/dem_alp_for_wetness.tif",env=env)
 name<-paste("M:/Geo-Data/wetness_new_e_test_",j,"_s1_a1.sgrd",sep="")
 rsaga.wetness.index(in.dem="M:/Geo-Data/dem_alp_for_wetness.sgrd",out.wetness.index=name,env=env,area.type=0,slope.type=0,suction=100)
-rsaga.sgrd.to.esri(name,env=myenv)
+rsaga.sgrd.to.esri(name,env=env)
+}
 
+
+#merge files without the buffer 
+#1:read files->crop files->save files
+#2:->merge all
+
+#diff1<- 7548.667
+
+
+for (j in c(1:55))
+{
+name<-paste("M:/Geo-Data/wetness_new_e_test_",j,"_s1_a1.asc",sep="")
+wet_area1<-raster(name)
+e.smal<-extent(e.dem10.f[1],e.dem10.f[2],(e.dem10.f[3]+(j-1)*diff1),(e.dem10.f[3]+(j)*diff1))
+wet_area1.1<-crop(wet_area1,e.smal)
+f_name<-paste("M:/Geo-Data/wetness_fjall/wetness_part_",j,".tif",sep="")
+writeRaster(wet_area1.1, filename=f_name, format="GTiff", overwrite=TRUE)
+}
+
+
+
+
+
+
+merge.raster<-function(filesource="M:/Geo-Data/wetness_fjall/"
+                       ,file_collection="wetness_part"
+                       ,temp_file="L:/DATA/temp_raster/temp.tif"
+                       ,target_file="M:/Geo-Data/wetness_fjall_part1.tif",
+                       proj="+init=epsg:3006")
+  
+  
+  
 
 
 

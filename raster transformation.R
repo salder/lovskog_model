@@ -27,7 +27,7 @@ raster_to_01<-function(filename="tree_prediction_2_tile.tif",
         out <- writeValues(out, val.t, bs$row[i])
       }
       out <- writeStop(out)
-      nam<-paste(targetlocation,"/pa_",filename,sep="")
+      nam<-paste(targetlocation,"/pa_border_",border,"_",filename,sep="")
       writeRaster(out, filename=nam, format="GTiff", overwrite=TRUE,datatype='INT1U')
 
 }
