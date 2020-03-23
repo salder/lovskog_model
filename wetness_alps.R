@@ -1,8 +1,8 @@
 # trying to uses saga for the 10x10m pixel resolution for the swedish alpine region
 #the data set is too large
-#-> creating smal data sets (whole rande from east to west but only smal area north-south
+#-> creating smal data sets (whole range from east to west but only smal area north-south
 #-> large overlapp to garantee that the estimation of the index is adequate
-#-> just using the not overlapping area to produce a the map.
+#-> just using the not overlapping area to produce  the resulting map.
 #-> using Hans G. shape for the definition of the alpine region 
 #   which based on the "fastighetskartan" kalfjäll+gacier+fjällbjörkskog"
 
@@ -11,7 +11,8 @@
 
 #requirements 
 # SAGA must be insatlled 
-# (alternatively can RQGIS be used, we have to try out that!!)
+# (alternatively can RQGIS be used, we have to try out that!! phython version has to e the right one, takes time if
+# you need to have different version for different applications)
 
 
 #install.packages("RSAGA")
@@ -33,7 +34,8 @@ env <- rsaga.env()
 #st_write(fjall_buffer, "fjall_buffer.shp")
 fjall_buffer<-readOGR("F:/Lovtrad_model","fjall_buffer")
 e.buff<-extent(fjall_buffer)
-dem10<-raster("M:/Geo-Data/Nnh_10m.tif")
+dem10<-raster("M:/Geo-Data/Nnh_10m.tif") #it is the same file that lies under \\YKSI\6_Analys\beräkningsunderlag_GIS_filer\Nnh_10m
+
 e.dem10<-extent(dem10)
 plot(e.dem10)
 
@@ -45,7 +47,7 @@ dem10.f<-crop(dem10,e.buff)
 e.dem10.f<-extent(dem10.f)
 
 diff<-e.dem10.f[4]-e.dem10.f[3]
-diff1<-diff/120
+diff1<-diff/120                      # 120 because otherwise the files will be too large
 
 
 
@@ -74,7 +76,7 @@ rsaga.sgrd.to.esri(name,env=env)
 #diff1<- 7548.667
 
 
-for (j in c(1:55))
+for (j in c(1:71))
 {
 name<-paste("M:/Geo-Data/wetness_new_e_test_",j,"_s1_a1.asc",sep="")
 wet_area1<-raster(name)
@@ -89,10 +91,10 @@ writeRaster(wet_area1.1, filename=f_name, format="GTiff", overwrite=TRUE)
 
 
 
-merge.raster<-function(filesource="M:/Geo-Data/wetness_fjall/"
+merge.raster(filesource="M:/Geo-Data/wetness_fjall/"
                        ,file_collection="wetness_part"
                        ,temp_file="L:/DATA/temp_raster/temp.tif"
-                       ,target_file="M:/Geo-Data/wetness_fjall_part1.tif",
+                       ,target_file="M:/Geo-Data/wetness_fjall_part2.tif",
                        proj="+init=epsg:3006")
   
   
