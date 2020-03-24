@@ -83,12 +83,108 @@ dat.band9<-tile.extract.multilayer(file_list=filelist_adlov,data=taxdata.sp,band
 dat.band10<-tile.extract.multilayer(file_list=filelist_adlov,data=taxdata.sp,bandnr=10)
 dat.band11<-tile.extract.multilayer(file_list=filelist_adlov,data=taxdata.sp,bandnr=11)
 dat.band12<-tile.extract.multilayer(file_list=filelist_adlov,data=taxdata.sp,bandnr=12)
-dat.band13<-tile.extract.multilayer(file_list=filelist_adlov,data=taxdata.sp,bandnr=13)
-dat.band14<-tile.extract.multilayer(file_list=filelist_adlov,data=taxdata.sp,bandnr=14)
-dat.band15<-tile.extract.multilayer(file_list=filelist_adlov,data=taxdata.sp,bandnr=15)
-dat.band16<-tile.extract.multilayer(file_list=filelist_adlov,data=taxdata.sp,bandnr=16)
+#dat.band13<-tile.extract.multilayer(file_list=filelist_adlov,data=taxdata.sp,bandnr=13)
+#dat.band14<-tile.extract.multilayer(file_list=filelist_adlov,data=taxdata.sp,bandnr=14)
+#dat.band15<-tile.extract.multilayer(file_list=filelist_adlov,data=taxdata.sp,bandnr=15)
+#dat.band16<-tile.extract.multilayer(file_list=filelist_adlov,data=taxdata.sp,bandnr=16)
+
+
+taxdata.m<-taxdata %>% left_join(.,dat.band1,by=c("Ostkoordinat","Nordkoordinat")) %>% 
+  left_join(.,dat.band2,by=c("Ostkoordinat","Nordkoordinat"))%>% 
+  left_join(.,dat.band3,by=c("Ostkoordinat","Nordkoordinat")) %>% 
+  left_join(.,dat.band4,by=c("Ostkoordinat","Nordkoordinat")) %>% 
+  left_join(.,dat.band5,by=c("Ostkoordinat","Nordkoordinat")) %>% 
+  left_join(.,dat.band6,by=c("Ostkoordinat","Nordkoordinat")) %>% 
+  left_join(.,dat.band7,by=c("Ostkoordinat","Nordkoordinat")) %>% 
+  left_join(.,dat.band8,by=c("Ostkoordinat","Nordkoordinat")) %>% 
+  left_join(.,dat.band9,by=c("Ostkoordinat","Nordkoordinat")) %>% 
+  left_join(.,dat.band10,by=c("Ostkoordinat","Nordkoordinat")) %>% 
+  left_join(.,dat.band11,by=c("Ostkoordinat","Nordkoordinat")) %>% 
+  left_join(.,dat.band12,by=c("Ostkoordinat","Nordkoordinat")) 
+
+saveRDS(taxdata.m,file="F:/Lovtrad_model/model_data_lov_adel.rds")
+
+#merge with lovtrad model
+
+lovtrad.r<-raster("L:/Lovtrad_model/lovtrad_sverige_sanolikhet_0_1.tif")
+
+taxdata.m.sp<-SpatialPointsDataFrame(coords=taxdata.m[,c("Ostkoordinat","Nordkoordinat")],data=taxdata.m,proj4string=CRS(projSWEREF))
+
+taxdata.m$lovtrad.m<-extract(lovtrad.r,taxdata.m.sp)
+saveRDS(taxdata.m,file="F:/Lovtrad_model/model_data_lov_adel.rds")
 
 
 
+
+
+########################################################################################################################################
+########################################################################################################################################
+
+#model building
+taxdata<-readRDS("F:/Lovtrad_model/model_data_lov_adel.rds")
+
+
+taxdata.red<-taxdata %>% 
+  filter(DelytaNr==0) %>%  # only undevided plots
+  filter(!is.na(band_4)) %>%   #south Sweden 
+  mutate(trad=Tallandel+Contortaandel+Granandel+Bjorkandel+Aspandel+Oadeltandel+Ekandel+Bokandel+Adelandel) %>% 
+  mutate(lovtrad=Bjorkandel+Aspandel+Oadeltandel+Ekandel+Bokandel+Adelandel) %>% 
+  mutate(lovandel=lovtrad/trad) %>% 
+  mutate(adelandel=Ekandel+Bokandel) %>% 
+  filter(trad>80) %>%  #should be always 100 but it seems to be errors in the data
+  filter(Taxar>2013) %>%  #time period 2014-2019
+  #filter(Krontackning>60) %>% #(test the effect!)
+  mutate(lovskog=ifelse(lovandel>0.55,1,0)) %>% # %>% dplyr::select(lovandel,ndvi1,ndvi2,ndvi_diff,lovskog,trad_hight,IsPermanent)
+  mutate(lovandel_k=Krontackning*lovandel/100) %>% 
+  mutate(lovskog_k=ifelse(lovandel_k>0.55,1,0)) #%>% 
+  #dplyr::select(-Tackningsarea1) %>% 
+  #filter(tree_hight_swe>50) %>% data.frame() #tree larger than 7 m (test the effect!)
+
+#plot(taxdata.red$Ostkoordinat,taxdata.red$Nordkoordinat)
+
+
+trainingsdata<-taxdata.red%>% filter(IsPermanent==1) 
+testdata<-taxdata.red%>% filter(IsPermanent==0) 
+
+
+library(mgcv)
+
+form<-as.formula(adelandel/100~
+                    s(band_1)
+                  +s(band_2)
+                  +s(band_3)
+                  +s(band_4)
+                  +s(band_5)
+                  +s(band_6)
+                  +s(band_7)
+                  +s(band_8)
+                  +s(band_9)
+                  +s(band_10)
+                  +s(band_11)
+                  +s(band_12)
+                  +s(lovandel)
+                  +as.factor(lovskog)
+)
+
+fit.adel<-gam(form,data=trainingsdata,"quasibinomial")
+
+
+pred.adel<-predict(fit.adel,testdata,type="response")
+testdata$pred.adel<-pred.adel
+
+
+test.res<-testdata %>% mutate(adellov=ifelse(adelandel/100>0.5,1,0)) %>% 
+                      mutate(adellov.pre=ifelse(pred.adel>0.5,1,0))%>% 
+                      mutate(pred.error=adellov-adellov.pre)
+prop.table(table(test.res$pred.error))
+
+test.res1<-testdata %>% mutate(adellov=ifelse(adelandel/100>0.5,1,0)) %>% 
+  mutate(adellov.pre=ifelse(pred.adel>0.5,1,0))%>% 
+  mutate(pred.error=adellov-adellov.pre) %>% filter(lovskog_k==1)
+prop.table(table(test.res1$pred.error))
+
+
+
+test.res1<-testdata %>% mutate(
 
 

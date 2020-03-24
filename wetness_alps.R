@@ -76,7 +76,7 @@ rsaga.sgrd.to.esri(name,env=env)
 #diff1<- 7548.667
 
 
-for (j in c(1:71))
+for (j in c(1:120))
 {
 name<-paste("M:/Geo-Data/wetness_new_e_test_",j,"_s1_a1.asc",sep="")
 wet_area1<-raster(name)
@@ -94,7 +94,7 @@ writeRaster(wet_area1.1, filename=f_name, format="GTiff", overwrite=TRUE)
 merge.raster(filesource="M:/Geo-Data/wetness_fjall/"
                        ,file_collection="wetness_part"
                        ,temp_file="L:/DATA/temp_raster/temp.tif"
-                       ,target_file="M:/Geo-Data/wetness_fjall_part2.tif",
+                       ,target_file="M:/Geo-Data/wetness_fjall_complete.tif",
                        proj="+init=epsg:3006")
   
   
