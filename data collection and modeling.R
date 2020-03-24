@@ -594,6 +594,43 @@ raster_to_01(filename="lovtrad_gotland.tif",
              border=50 #larger than this value /100
 )
 
+raster_to_01(filename="lovtrad_gotland.tif",
+             sourcelocation="L:/Lovtrad_model",
+             targetlocation="L:/Lovtrad_model",
+             tempfile="L:/DATA/temp_raster/temp.tif",
+             border=5 #larger than this value /100
+)
+
+
+#areal lovtrad gottland
+lov.got<-raster("L:/Lovtrad_model/lovtrad_gotland.tif")
+lov.val<-getValues(lov.got)
+sum(lov.val*10^2,na.rm=T)
+
+
+lov.got<-raster("L:/Lovtrad_model/pa_border_10_lovtrad_gotland.tif")
+lov.val<-getValues(lov.got)
+sum(lov.val*10^2,na.rm=T)
+
+lov.got<-raster("L:/Lovtrad_model/pa_border_20_lovtrad_gotland.tif")
+lov.val<-getValues(lov.got)
+sum(lov.val*10^2,na.rm=T)
+
+lov.got<-raster("L:/Lovtrad_model/pa_border_30_lovtrad_gotland.tif")
+lov.val<-getValues(lov.got)
+sum(lov.val*10^2,na.rm=T)
+
+
+lov.got<-raster("L:/Lovtrad_model/pa_border_50_lovtrad_gotland.tif")
+lov.val<-getValues(lov.got)
+sum(lov.val*10^2,na.rm=T)
+
+
+
+lov.got<-raster("L:/Lovtrad_model/pa_border_5_lovtrad_gotland.tif")
+lov.val<-getValues(lov.got)
+sum(lov.val*10^2,na.rm=T)
+
 
 
 

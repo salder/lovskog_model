@@ -180,11 +180,16 @@ prop.table(table(test.res$pred.error))
 
 test.res1<-testdata %>% mutate(adellov=ifelse(adelandel/100>0.5,1,0)) %>% 
   mutate(adellov.pre=ifelse(pred.adel>0.5,1,0))%>% 
-  mutate(pred.error=adellov-adellov.pre) %>% filter(lovskog_k==1)
+  mutate(pred.error=adellov-adellov.pre) %>% 
+  mutate(pred.sum=adellov+adellov.pre)%>% filter(lovskog_k==1)
+
+
 prop.table(table(test.res1$pred.error))
 
+test.res2<-test.res1 %>% filter(pred.sum>0)
 
 
-test.res1<-testdata %>% mutate(
+test.res2.sp<-SpatialPointsDataFrame(coords=test.res2[,c("Ostkoordinat","Nordkoordinat")],data=test.res2,proj4string=CRS(projSWEREF))
 
-
+library(mapview)
+mapview(test.res2.sp,zcol="pred.sum")
