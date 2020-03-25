@@ -10,7 +10,7 @@ raster_to_01<-function(filename="tree_prediction_2_tile.tif",
                        sourcelocation="L:/Lovtrad_model",
                        targetlocation="L:/Lovtrad_model",
                        tempfile="L:/DATA/temp_raster/temp.tif",
-                       border=0.51 #larger than this value
+                       border=51 #larger than this value, in percent (%)
                        )
 
 {
@@ -19,11 +19,12 @@ raster_to_01<-function(filename="tree_prediction_2_tile.tif",
       out<-x
       bs <- blockSize(out)
       file.temp=tempfile
+      border.t<-border/100
       out <- writeStart(out, file.temp, overwrite=TRUE)
       for (i in 1:bs$n)
       {
         val <- getValues(x, row=bs$row[i], nrows=bs$nrows[i] )
-        val.t<-ifelse(val>border,1,0)
+        val.t<-ifelse(val>border.t,1,0)
         out <- writeValues(out, val.t, bs$row[i])
       }
       out <- writeStop(out)
