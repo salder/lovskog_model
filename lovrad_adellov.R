@@ -222,7 +222,7 @@ saveRDS(taxdata.m,file="F:/Lovtrad_model/model_data_lov_adel_aug.rds")
 ########################################################################################################################################
 
 #model building
-taxdata<-readRDS("F:/Lovtrad_model/model_data_lov_adel.rds")
+taxdata<-readRDS("F:/Lovtrad_model/model_data_lov_adel_aug.rds")
 
 
 taxdata.red<-taxdata %>% 
@@ -263,7 +263,20 @@ form<-as.formula(adelandel/100~
                   +s(band_10)
                   +s(band_11)
                   +s(band_12)
-                  +s(lovandel)
+                  #+s(lovtrad.m)
+                 +s(band_aug1)
+                 +s(band_aug2)
+                 +s(band_aug3)
+                 +s(band_aug4)
+                 +s(band_aug5)
+                 +s(band_aug6)
+                 +s(band_aug7)
+                 +s(band_aug8)
+                 +s(band_aug9)
+                 +s(band_aug10)
+                 +s(band_aug11)
+                 +s(band_aug12)
+                 
                   #+as.factor(lovskog)
 )
 
@@ -274,63 +287,80 @@ summary(fit.adel)
 
 #alternativt modell
 
-library(rpart)
-fit.rpart<-rpart(adelandel/100~
-                    band_1
-                 +band_2
-                 +band_3
-                 +band_4
-                 +band_5
-                 +band_6
-                 +band_7
-                 +band_8
-                 +band_9
-                 +band_10
-                 +band_12
-                 +lovandel
-,data=trainingsdata)
+# library(rpart)
+# fit.rpart<-rpart(adelandel/100~
+#                     band_1
+#                  +band_2
+#                  +band_3
+#                  +band_4
+#                  +band_5
+#                  +band_6
+#                  +band_7
+#                  +band_8
+#                  +band_9
+#                  +band_10
+#                  +band_12
+#                  +lovandel
+#                  
+#                  
+#                  
+#                  
+# ,data=trainingsdata)
+# 
+# pred.rpart<-predict(fit.rpart,testdata)
+# testdata$pred.rpart<-pred.rpart
+# 
+# test.res<-testdata %>% mutate(adellov=ifelse(adelandel/100>0.5,1,0)) %>% 
+#   mutate(adellov.pre=ifelse(pred.rpart>0.5,1,0))%>% 
+#   mutate(pred.error=adellov-adellov.pre)
+# 
+# prop.table(table(test.res$pred.error))
+# 
+# test.res1<-testdata %>% mutate(adellov=ifelse(adelandel/100>0.5,1,0)) %>% 
+#   mutate(adellov.pre=ifelse(pred.rpart>0.5,1,0))%>% 
+#   mutate(pred.error=adellov-adellov.pre) %>% 
+#   mutate(pred.sum=adellov+adellov.pre)%>% filter(lovskog_k==1)
+# 
+# 
+# prop.table(table(test.res1$pred.error))
+# 
 
-pred.rpart<-predict(fit.rpart,testdata)
-testdata$pred.rpart<-pred.rpart
-
-test.res<-testdata %>% mutate(adellov=ifelse(adelandel/100>0.5,1,0)) %>% 
-  mutate(adellov.pre=ifelse(pred.rpart>0.5,1,0))%>% 
-  mutate(pred.error=adellov-adellov.pre)
-
-prop.table(table(test.res$pred.error))
-
-test.res1<-testdata %>% mutate(adellov=ifelse(adelandel/100>0.5,1,0)) %>% 
-  mutate(adellov.pre=ifelse(pred.rpart>0.5,1,0))%>% 
-  mutate(pred.error=adellov-adellov.pre) %>% 
-  mutate(pred.sum=adellov+adellov.pre)%>% filter(lovskog_k==1)
 
 
-prop.table(table(test.res1$pred.error))
-
-
-
-
-
+###########################################################################
 #GAM
 pred.adel<-predict(fit.adel,testdata,type="response")
-testdata$pred.adel<-pred.adel
+testdata$pred.adel<-round(pred.adel,5)
 
 
 
 
 
 test.res<-testdata %>% mutate(adellov=ifelse(adelandel/100>0.5,1,0)) %>% 
-                      mutate(adellov.pre=ifelse(pred.adel>0.5,1,0))%>% 
+                      mutate(adellov.pre=ifelse(pred.adel>0.1,1,0))%>%       #o.1!!!!
                       mutate(pred.error=adellov-adellov.pre)
 prop.table(table(test.res$pred.error))
 
 test.res1<-testdata %>% mutate(adellov=ifelse(adelandel/100>0.5,1,0)) %>% 
-  mutate(adellov.pre=ifelse(pred.adel>0.5,1,0))%>% 
+  mutate(adellov.pre=ifelse(pred.adel>0.1,1,0))%>% 
   mutate(pred.error=adellov-adellov.pre) %>% 
-  mutate(pred.sum=adellov+adellov.pre)%>% filter(lovskog_k==1)
+  mutate(pred.sum=adellov+adellov.pre)%>% 
+  #filter(lovskog_k==1)
+  filter(adellov==1)
 
 
+boxplot(test.res1$pred.adel~test.res1$adellov.pre)
+
+
+table(test.res1$pred.error)
 prop.table(table(test.res1$pred.error))
+
+t(data.frame(test.res1[13,]))
+
+
+
+
+
 
 test.res2<-test.res1 %>% filter(pred.sum>0) %>% filter(pred.error==1)
 
