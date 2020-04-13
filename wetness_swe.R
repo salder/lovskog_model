@@ -58,7 +58,7 @@ diff1<-diff/350                      # 300 because otherwise the files will be t
 for (j in 1:350)
 {
   e.smal<-extent(e.dem10[1],e.dem10[2],(e.dem10[3]+(j-1)*diff1)-4000,(e.dem10[3]+(j)*diff1)+4000)
-  
+  #e.smal<-e1
   #fjall_buffer.s<-crop(fjall_buffer,e.smal)
   #e.buff.s<-extent(fjall_buffer.s)
   dem.s<-crop(dem10,e.smal)
@@ -69,8 +69,8 @@ for (j in 1:350)
   e.cr<-extent(dem.s)
   
   diff_e_w<-e.cr[2]-e.cr[1]
-  overlap1<-e.cr[1]+(diff_e_w/2)+(diff_e_w/2)*0.2
-  overlap2<-e.cr[1]+(diff_e_w/2)-(diff_e_w/2)*0.2
+  overlap1<-e.cr[1]+(diff_e_w/2)+(diff_e_w/2)*0.05
+  overlap2<-e.cr[1]+(diff_e_w/2)-(diff_e_w/2)*0.05
   e.cr1<-extent(c(e.cr[1],overlap1,e.cr[3],e.cr[4]))
   e.cr2<-extent(c(overlap2,e.cr[2],e.cr[3],e.cr[4]))
   
@@ -130,13 +130,58 @@ for (j in 1:350)
 
 
 
+library(mapview)
+
+nmd<-raster("F:/NMD/nmd2018bas_ogeneraliserad_v1_0.tif")
 
 
-merge.raster(filesource="M:/Geo-Data/wetness_fjall/"
-             ,file_collection="wetness_part"
+for (i in c(0:353))
+{
+
+file.name<-paste("C:/wetness/sweden_saga/wetness_part_",i,".tif",sep="")
+wet.tail<-raster(file.name)
+
+e.w<-extent(wet.tail)
+
+nmd.w<-crop(nmd,e.w)
+wet.val<-getValues(wet.tail)
+nmd.val<-getValues(nmd.w)
+nmd.sjo<-ifelse(nmd.val%in%c(61,62),0,1)
+wet.val.c<-ifelse(nmd.sjo==1,wet.val,NA)
+wet.tail<-setValues(wet.tail,wet.val.c)
+
+file.name<-paste("C:/wetness/wetness_saga_sjo/wetness_part_utan_sjo_",i,".tif",sep="")
+writeRaster(wet.tail, filename=file.name, format="GTiff", overwrite=TRUE)
+}
+
+
+
+
+
+#spatila transfomation
+for (i in c(0:352))
+{
+  
+  file.name<-paste("C:/wetness/wetness_saga_sjo/wetness_part_utan_sjo_",i,".tif",sep="")
+  wet.tail<-raster(file.name)
+  wet.tail99<-projectRaster(wet.tail,crs=crs(projSWEREF))
+  
+  file.name<-paste("C:/wetness/wetness_saga_sjo_sw99/wetness_part_utan_sjo_sw99_",i,".tif",sep="")
+  writeRaster(wet.tail, filename=file.name, format="GTiff", overwrite=TRUE)
+}
+
+
+merge.raster(filesource="C:/wetness/wetness_saga_sjo/"
+             ,file_collection="wetness_part_utan_sjo"
              ,temp_file="L:/DATA/temp_raster/temp.tif"
-             ,target_file="M:/Geo-Data/wetness_fjall_complete.tif",
+             ,target_file="C:/wetness/wetness_swe_complete.tif",
              proj="+init=epsg:3006")
+
+
+
+
+
+
 
 
 
