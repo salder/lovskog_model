@@ -61,6 +61,7 @@ for (j in 1:350)
   #e.smal<-e1
   #fjall_buffer.s<-crop(fjall_buffer,e.smal)
   #e.buff.s<-extent(fjall_buffer.s)
+  #e.smal<-extent(c(285578,614517,6423000,6430000))
   dem.s<-crop(dem10,e.smal)
   e.cr<-extent(dem.s)
   e.swe.cr<-crop(sweden.sh,e.cr)
@@ -100,7 +101,10 @@ for (j in 1:350)
         
         e.west<-extent(c(e.cr[1],e.cr[1]+(diff_e_w/2),e.cr[3]+4000,e.cr[4]-4000))
         e.east<-extent(c(e.cr[1]+(diff_e_w/2),e.cr[2],e.cr[3]+4000,e.cr[4]-4000))
-        
+      
+        #e.west<-extent(c(e.cr[1],e.cr[1]+(diff_e_w/2),e.cr[3]+2000,e.cr[4]-2000))
+        #e.east<-extent(c(e.cr[1]+(diff_e_w/2),e.cr[2],e.cr[3]+2000,e.cr[4]-2000))
+          
         wet_west<-crop(wet_west,e.west)
         wet_east<-crop(wet_east,e.east)
         wet<-merge(wet_west,wet_east)
@@ -171,8 +175,8 @@ for (i in c(0:352))
 }
 
 
-merge.raster(filesource="C:/wetness/wetness_saga_sjo/"
-             ,file_collection="wetness_part_utan_sjo"
+merge.raster(filesource="C:/wetness/wetness_saga_sjo_sw99/"
+             ,file_collection="wetness_part_utan_sjo_sw99"
              ,temp_file="L:/DATA/temp_raster/temp.tif"
              ,target_file="C:/wetness/wetness_swe_complete.tif",
              proj="+init=epsg:3006")

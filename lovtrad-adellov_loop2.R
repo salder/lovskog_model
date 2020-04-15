@@ -85,7 +85,7 @@ file_aug<-file_aug[ceck==TRUE]
 #4 67:83
 #
 
-for (m in c(45:66))
+for (m in c(39:44))
 {
   aug.r<-raster(file_aug[m],band=1)
   jun.r<-raster(file_juni[m],band=1)
@@ -202,48 +202,6 @@ for (m in c(45:66))
 #file.remove(file_aug)
 #file.remove(file_juni)
 
-
-
-
-
-ceck<-NA
-
-for (m in c(1:99))
-{
-  b1<-raster(file_juni[m],band=3)
-  e<-extent(b1)
-  p <- as(e, 'SpatialPolygons')  
- # plot(sweden.sh)
-  #plot(p,add=T)
-  proj4string(p)<-projSWEREF
-  ceck[m]<-any(gOverlaps(sweden.sh,p,byid=T))
-}
-
-
-
-ceck<-c(
-FALSE, FALSE, FALSE, FALSE, FALSE,  TRUE, TRUE,  TRUE, FALSE,
-FALSE, FALSE,  TRUE,  TRUE,  TRUE,  TRUE, TRUE , TRUE, FALSE,
-FALSE, FALSE,  TRUE,  TRUE,  TRUE, TRUE , TRUE,  TRUE, FALSE,
-TRUE,  TRUE,  TRUE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
-TRUE,  TRUE,  TRUE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
-TRUE,  TRUE,  TRUE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
-TRUE,  TRUE,  TRUE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
-TRUE,  TRUE,  TRUE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
-TRUE,  TRUE,  TRUE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  FALSE,
-TRUE,  TRUE,  TRUE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  FALSE,
-FALSE,  TRUE,  TRUE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  FALSE)
-
-col.plot<-ifelse(ceck==FALSE,2,1)  
-plot(sweden.sh)
-
-for (m in c(1:99))
-{
-  b1<-raster(file_juni[m],band=3)
-  e<-extent(b1)
-  p <- as(e, 'SpatialPolygons')  
-  plot(e,add=T,col=col.plot[m])
-}
 
 
 
