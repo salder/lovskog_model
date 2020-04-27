@@ -90,7 +90,7 @@ file_aug<-file_aug[ceck==TRUE]
 #
 
 
-for (m in c(10:22))
+for (m in c(43:44))
 {
   aug.r<-raster(file_aug[m],band=1)
   jun.r<-raster(file_juni[m],band=1)

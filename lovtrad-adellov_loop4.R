@@ -56,7 +56,7 @@ file_aug<-grep(c("adellov_august"),t1,value=TRUE)
 file_juni<-file_juni[order(file_juni,decreasing =T)]
 file_aug<-file_aug[order(file_aug,decreasing =T)]
 
-lovtrad.r<-raster("L:/Lovtrad_model/lovtrad_sverige_sanolikhet_0_1_d.tif")
+lovtrad.r<-raster("L:/Lovtrad_model/lovtrad_sverige_sanolikhet_0_1_e.tif")
 
 
 
@@ -90,7 +90,7 @@ file_aug<-file_aug[ceck==TRUE]
 #
 
 
-for (m in c(10:22))
+for (m in c(29:40))
 {
   aug.r<-raster(file_aug[m],band=1)
   jun.r<-raster(file_juni[m],band=1)
@@ -99,29 +99,29 @@ for (m in c(10:22))
   lov.r<-crop(lovtrad.r,e.r)
   e.l<-extent(lov.r)    #extent of the forest modle is not hte same as the tiles for ädellov
   
-  band_3.r<-crop(raster(file_juni[m],band=3),e.l,file="C:/TEMP/temp_3c.tif",overwrite=TRUE)
-  band_4.r<-crop(raster(file_juni[m],band=4),e.l,file="C:/TEMP/temp_4.ctif",overwrite=TRUE)
+  band_3.r<-crop(raster(file_juni[m],band=3),e.l,file="C:/TEMP/temp_3e.tif",overwrite=TRUE)
+  band_4.r<-crop(raster(file_juni[m],band=4),e.l,file="C:/TEMP/temp_4e.ctif",overwrite=TRUE)
   #writeRaster(band_4.r, filename="C:/Lovtrad/tiles/band_4.r", format="GTiff", overwrite=TRUE)
-  band_5.r<-crop(raster(file_juni[m],band=5),e.l,file="C:/TEMP/temp_5c.tif",overwrite=TRUE)
-  band_6.r<-crop(raster(file_juni[m],band=6),e.l,file="C:/TEMP/temp_6c.tif",overwrite=TRUE)
-  band_7.r<-crop(raster(file_juni[m],band=7),e.l,file="C:/TEMP/temp_7c.tif",overwrite=TRUE)
-  band_8.r<-crop(raster(file_juni[m],band=8),e.l,file="C:/TEMP/temp_8c.tif",overwrite=TRUE)
-  band_9.r<-crop(raster(file_juni[m],band=9),e.l,file="C:/TEMP/temp_9c.tif",overwrite=TRUE)
+  band_5.r<-crop(raster(file_juni[m],band=5),e.l,file="C:/TEMP/temp_5e.tif",overwrite=TRUE)
+  band_6.r<-crop(raster(file_juni[m],band=6),e.l,file="C:/TEMP/temp_6e.tif",overwrite=TRUE)
+  band_7.r<-crop(raster(file_juni[m],band=7),e.l,file="C:/TEMP/temp_7e.tif",overwrite=TRUE)
+  band_8.r<-crop(raster(file_juni[m],band=8),e.l,file="C:/TEMP/temp_8e.tif",overwrite=TRUE)
+  band_9.r<-crop(raster(file_juni[m],band=9),e.l,file="C:/TEMP/temp_9e.tif",overwrite=TRUE)
   
-  band_10.r<-crop(raster(file_juni[m],band=10),e.l,file="C:/TEMP/temp_10c.tif",overwrite=TRUE)
-  band_11.r<-crop(raster(file_juni[m],band=11),e.l,file="C:/TEMP/temp_11c.tif",overwrite=TRUE)
+  band_10.r<-crop(raster(file_juni[m],band=10),e.l,file="C:/TEMP/temp_10e.tif",overwrite=TRUE)
+  band_11.r<-crop(raster(file_juni[m],band=11),e.l,file="C:/TEMP/temp_11e.tif",overwrite=TRUE)
   
   
-  band_aug2.r<-crop(raster(file_aug[m],band=2),e.l,file="C:/TEMP/temp_12c.tif",overwrite=TRUE)
-  band_aug3.r<-crop(raster(file_aug[m],band=3),e.l,file="C:/TEMP/temp_13c.tif",overwrite=TRUE)
-  band_aug4.r<-crop(raster(file_aug[m],band=4),e.l,file="C:/TEMP/temp_14c.tif",overwrite=TRUE)
-  band_aug6.r<-crop(raster(file_aug[m],band=6),e.l,file="C:/TEMP/temp_15c.tif",overwrite=TRUE)
-  band_aug7.r<-crop(raster(file_aug[m],band=7),e.l,file="C:/TEMP/temp_16c.tif",overwrite=TRUE)
-  band_aug8.r<-crop(raster(file_aug[m],band=8),e.l,file="C:/TEMP/temp_17c.tif",overwrite=TRUE)
-  band_aug9.r<-crop(raster(file_aug[m],band=9),e.l,file="C:/TEMP/temp_18c.tif",overwrite=TRUE)
-  band_aug10.r<-crop(raster(file_aug[m],band=10),e.l,file="C:/TEMP/temp_19c.tif",overwrite=TRUE)
-  band_aug11.r<-crop(raster(file_aug[m],band=11),e.l,file="C:/TEMP/temp_20.tif",overwrite=TRUE)
-  band_aug12.r<-crop(raster(file_aug[m],band=12),e.l,file="C:/TEMP/temp_21.tif",overwrite=TRUE)
+  band_aug2.r<-crop(raster(file_aug[m],band=2),e.l,file="C:/TEMP/temp_12e.tif",overwrite=TRUE)
+  band_aug3.r<-crop(raster(file_aug[m],band=3),e.l,file="C:/TEMP/temp_13e.tif",overwrite=TRUE)
+  band_aug4.r<-crop(raster(file_aug[m],band=4),e.l,file="C:/TEMP/temp_14e.tif",overwrite=TRUE)
+  band_aug6.r<-crop(raster(file_aug[m],band=6),e.l,file="C:/TEMP/temp_15e.tif",overwrite=TRUE)
+  band_aug7.r<-crop(raster(file_aug[m],band=7),e.l,file="C:/TEMP/temp_16e.tif",overwrite=TRUE)
+  band_aug8.r<-crop(raster(file_aug[m],band=8),e.l,file="C:/TEMP/temp_17e.tif",overwrite=TRUE)
+  band_aug9.r<-crop(raster(file_aug[m],band=9),e.l,file="C:/TEMP/temp_18e.tif",overwrite=TRUE)
+  band_aug10.r<-crop(raster(file_aug[m],band=10),e.l,file="C:/TEMP/temp_19e.tif",overwrite=TRUE)
+  band_aug11.r<-crop(raster(file_aug[m],band=11),e.l,file="C:/TEMP/temp_20e.tif",overwrite=TRUE)
+  band_aug12.r<-crop(raster(file_aug[m],band=12),e.l,file="C:/TEMP/temp_21e.tif",overwrite=TRUE)
   
   
   
@@ -129,7 +129,7 @@ for (m in c(10:22))
   
   out <- raster(lov.r)
   bs <- blockSize(out,minblocks=300)
-  filename="C:/TEMP/temp_d.tif"
+  filename="C:/TEMP/temp_e.tif"
   out <- writeStart(out, filename, overwrite=TRUE)
   for (i in 1:bs$n)
   {
